@@ -1,4 +1,4 @@
-//  Stanford CS193p Assignment 1 (Extra Work included)
+//  Stanford CS193p Assignment 1
 //  ContentView.swift
 //  Memorize
 //
@@ -7,136 +7,70 @@
 
 import SwiftUI
 
-// list of all the possilble emojis, that can appear on the Memorycards
 struct ContentView: View {
-    @State var emojis = ["🚲", "🚂", "🚁", "🚜", "🚕","🏎", "🚑", "🚓", "🚒", "✈️", "🚀", "⛵️", "🛸", "🛶", "🚌", "🏍", "🛺", "🚠", "🛵", "🚗", "🚚", "🚇", "🛻", "🚝"]
-    var vehicles = ["🚲", "🚂", "🚁", "🚜", "🚕","🏎", "🚑", "🚓", "🚒", "✈️", "🚀", "⛵️", "🛸", "🛶", "🚌", "🏍", "🛺", "🚠", "🛵", "🚗", "🚚", "🚇", "🛻", "🚝"]
-    var flags = ["🇺🇸" ,"🇩🇪" ,"🇬🇧" ,"🇦🇺" ,"🇯🇵" ,"🇹🇭" ,"🇵🇸" ,"🇧🇷" ,"🇦🇫" ,"🇨🇳" ,"🇫🇷" ,"🇮🇷" ,"🇳🇬" ,"🇹🇷" ,"🇵🇹" ,"🇨🇷" ,"🇪🇹" ,"🇪🇪"]
-    var animals = ["🐆" ,"🐗" ,"🦓" ,"🐫" ,"🦌" ,"🦥" ,"🦏" ,"🦒" ,"🐺" ,"🦘" ,"🐘" ,"🦬" ,"🐅" ,"🦛"]
+    @ObservedObject var viewModel: EmojiMemoryGame
     
-    @State var emojiCount = 24
-    @State var Minimumitemsize = 55
-    
-
-    
-
 // Design of the Memorygame
     var body: some View {
-
         VStack {
-            Text("Memorize!").font(.largeTitle)
-            ScrollView{LazyVGrid(columns: [GridItem(.adaptive(minimum:CGFloat(Minimumitemsize), maximum:200))]){
-                ForEach(emojis[0..<emojiCount], id: \.self) { emoji in CardView(content: emoji)
+            HStack {
+                Text(viewModel.themeName).font(.largeTitle)
+                Spacer()
+                Text("Score: \(viewModel.score)").font(.largeTitle)
+            }
+            .padding()
+            
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 65))]) {
+                    ForEach(viewModel.cards) { card in CardView(card: card)
                         .aspectRatio(2/3, contentMode: .fit)
+                        .onTapGesture {
+                            viewModel.choose(card)
+                        }
                         }
                     }
-                }.foregroundColor(.red)
-            Spacer()
-            HStack{
-                Spacer()
-                vehicleMemory
-                Spacer()
-                flagMemory
-                Spacer()
-                animalMemory
-                Spacer()
-            }
-        }
-        .padding(.horizontal)
-    }
-   
-// Theme changing buttons
-    var vehicleMemory: some View {
-        Button{
-            emojiCount = Int.random(in: 4...vehicles.count)
-            emojis = vehicles.shuffled()
-            switch emojiCount {
-            case 4: Minimumitemsize = 110
-            case 5..<6: Minimumitemsize = 100
-            case 6..<9: Minimumitemsize = 95
-            case 9..<10: Minimumitemsize = 85
-            case 10..<16: Minimumitemsize = 75
-            default: Minimumitemsize = 55
-            }
-        } label: {
-            VStack{
-                Image(systemName: "car.circle") .font(.largeTitle)
-                Text("Vehicles") .font(.caption)
+                }
+            .foregroundColor(viewModel.themeColor)
+            .padding(.horizontal)
+            
+            Button {
+                viewModel.newGame()
+            } label: {
+                Text("New Game").font(.largeTitle)
             }
         }
     }
-    var flagMemory: some View {
-        Button {
-            emojiCount = Int.random(in: 4...flags.count)
-            emojis = flags.shuffled()
-            switch emojiCount {
-            case 4: Minimumitemsize = 110
-            case 5..<6: Minimumitemsize = 100
-            case 6..<9: Minimumitemsize = 95
-            case 9..<10: Minimumitemsize = 85
-            case 10..<16: Minimumitemsize = 75
-            default: Minimumitemsize = 55
-            }
-        } label: {
-            VStack{
-                Image(systemName: "globe.europe.africa") .font(.largeTitle)
-                Text("Countries") .font(.caption)
-            }
-            }
-        }
-    var animalMemory: some View {
-        Button{
-            emojiCount = Int.random(in: 4...animals.count)
-            emojis = animals.shuffled()
-            switch emojiCount {
-            case 4: Minimumitemsize = 110
-            case 5..<6: Minimumitemsize = 100
-            case 6..<9: Minimumitemsize = 95
-            case 9..<10: Minimumitemsize = 85
-            case 10..<16: Minimumitemsize = 75
-            default: Minimumitemsize = 55
-            }
-        } label: {
-            VStack{
-                Image(systemName: "pawprint.circle") .font(.largeTitle)
-                Text("Animals") .font(.caption)
-            }
-        }
-    }
-
+}
 
 // single Carddesign
 struct CardView: View {
-    var content: String
-    @State var isFaceUp: Bool = true
+    let card: MemoryGame<String>.Card
     
     var body: some View {
         ZStack {
             let shape = RoundedRectangle(cornerRadius: 20)
-            if isFaceUp{
+            if card.isFaceUp{
                 shape.fill().foregroundColor(.white)
                 shape.strokeBorder(lineWidth: 3)
-                Text(content).font(.largeTitle)
+                Text(card.content).font(.largeTitle)
+            } else if card.isMatched {
+                shape.opacity(0)
             } else {
                 shape.fill()
             }
-        }
-        .onTapGesture {
-            isFaceUp = !isFaceUp
         }
     }
 }
     
 
 
-
-
-
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
-            .previewInterfaceOrientation(.portrait)
+        let  game = EmojiMemoryGame()
+        ContentView(viewModel: game)
+            .preferredColorScheme(.dark)
+        ContentView(viewModel: game)
+            .preferredColorScheme(.light)
     }
 }
-}
+
